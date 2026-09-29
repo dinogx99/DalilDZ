@@ -1,0 +1,2 @@
+# Entity Resolution
+Exact normalized identifiers take precedence. Legal forms are normalized separately. Company names use token-set similarity and retain the similarity value as explanatory metadata. Ambiguous matches must not be auto-merged.
