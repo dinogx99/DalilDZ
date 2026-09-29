@@ -1,0 +1,2 @@
+# Contributing
+Use focused pull requests. Add tests for verification rules and source adapters. Never commit credentials or real sensitive commercial documents. Synthetic fixtures must be clearly marked.
