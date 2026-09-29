@@ -114,6 +114,7 @@ class EvidenceRecord(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     case_id: Mapped[str] = mapped_column(String(36), index=True)
+    analysis_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     source_id: Mapped[str] = mapped_column(String(80), index=True)
     document_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     field: Mapped[str] = mapped_column(String(80), index=True)
