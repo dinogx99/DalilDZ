@@ -1,11 +1,14 @@
 from contextlib import asynccontextmanager
-import logging
 
 from fastapi import FastAPI
 
 from app.api.routes import r
 from app.core.db import init_db
 from app.core.middleware import RateLimitMiddleware, SecurityAndCorrelationMiddleware
+from app.core.observability import configure_logging
+
+
+configure_logging()
 
 
 @asynccontextmanager
@@ -13,11 +16,6 @@ async def lifespan(_app: FastAPI):
     init_db()
     yield
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='{"level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
-)
 
 app = FastAPI(
     title="DalilDZ",

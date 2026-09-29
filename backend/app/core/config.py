@@ -16,6 +16,11 @@ class Settings:
         "DALILDZ_USER_AGENT",
         "DalilDZ/1.0 (+https://github.com/dinogx99/DalilDZ)",
     )
+    ai_provider: str = os.getenv("AI_PROVIDER", "none")
+    ai_base_url: str = os.getenv("AI_BASE_URL", "http://localhost:11434")
+    ai_model: str = os.getenv("AI_MODEL", "qwen2.5:7b")
+    ai_api_key: str | None = os.getenv("AI_API_KEY")
+    ai_timeout_seconds: float = float(os.getenv("AI_TIMEOUT_SECONDS", "60"))
 
 
 settings = Settings()

@@ -18,6 +18,7 @@ from app.models.entities import (
     EvidenceRecord,
     ExtractedClaim,
     Report,
+    SourceSnapshot,
     VerificationCheck,
 )
 from app.normalization.algeria import (
@@ -34,6 +35,7 @@ from app.services.pipeline import analyze_case
 from app.services.reporting import render_findings_csv, render_report_html
 from app.services.security import sanitize_filename
 from app.sources.adapters import ADAPTERS
+from app.workers.celery_app import analyze_case_task
 
 
 r = APIRouter(prefix="/api/v1")
@@ -218,6 +220,7 @@ def delete_case(case_id: str):
             Report,
             VerificationCheck,
             EvidenceRecord,
+            SourceSnapshot,
             ExtractedClaim,
             Document,
             BusinessEntity,
@@ -445,6 +448,52 @@ async def run_analysis(case_id: str, request: Request):
 @r.post("/cases/{case_id}/refresh")
 async def refresh_evidence(case_id: str, request: Request):
     return await run_analysis(case_id, request)
+
+
+@r.post("/cases/{case_id}/analyze/background", status_code=202)
+def queue_analysis(case_id: str, request: Request):
+    with Session() as db:
+        if not db.get(Case, case_id):
+            fail(404, "CASE_NOT_FOUND", "Verification case does not exist.")
+        try:
+            task = analyze_case_task.delay(case_id)
+        except Exception:
+            fail(503, "QUEUE_UNAVAILABLE", "Background analysis queue is unavailable.")
+        record_audit(
+            db,
+            "analysis.queued",
+            case_id=case_id,
+            correlation_id=request.state.correlation_id,
+            metadata={"celery_task_id": task.id},
+        )
+        db.commit()
+        return {"task_id": task.id, "state": "QUEUED"}
+
+
+@r.get("/cases/{case_id}/jobs")
+def list_analysis_jobs(case_id: str):
+    with Session() as db:
+        if not db.get(Case, case_id):
+            fail(404, "CASE_NOT_FOUND", "Verification case does not exist.")
+        jobs = (
+            db.query(AnalysisJob)
+            .filter(AnalysisJob.case_id == case_id)
+            .order_by(desc(AnalysisJob.created_at))
+            .limit(100)
+            .all()
+        )
+        return [
+            {
+                "id": job.id,
+                "status": job.status,
+                "error_code": job.error_code,
+                "error_message": job.error_message,
+                "created_at": job.created_at,
+                "started_at": job.started_at,
+                "finished_at": job.finished_at,
+            }
+            for job in jobs
+        ]
 
 
 @r.get("/cases/{case_id}/evidence")

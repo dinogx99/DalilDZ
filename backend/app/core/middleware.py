@@ -1,4 +1,5 @@
 from collections import defaultdict, deque
+import logging
 import time
 import uuid
 
@@ -9,11 +10,26 @@ from starlette.responses import JSONResponse
 from app.core.config import settings
 
 
+logger = logging.getLogger("dalildz.http")
+
+
 class SecurityAndCorrelationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         correlation_id = request.headers.get("x-request-id") or str(uuid.uuid4())
         request.state.correlation_id = correlation_id
+        started = time.perf_counter()
         response = await call_next(request)
+        duration_ms = round((time.perf_counter() - started) * 1000, 2)
+        logger.info(
+            "request.completed",
+            extra={
+                "correlation_id": correlation_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": duration_ms,
+            },
+        )
         response.headers["X-Request-ID"] = correlation_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
