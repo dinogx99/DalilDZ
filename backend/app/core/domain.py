@@ -14,6 +14,7 @@ from app.normalization.algeria import (
     normalize_legal_form,
     normalize_phone,
     normalize_wilaya,
+    transliterate_arabic,
 )
 
 
@@ -47,7 +48,13 @@ def fingerprint(payload: object) -> str:
 def similarity(left: str | None, right: str | None) -> float:
     a = normalize_company_name(left) or ""
     b = normalize_company_name(right) or ""
-    return round(token_set_ratio(a, b) / 100, 3)
+    direct = token_set_ratio(a, b) / 100
+    transliterated = 0.0
+    if left and right:
+        left_translit = transliterate_arabic(left) if any("\u0600" <= ch <= "\u06ff" for ch in left) else a
+        right_translit = transliterate_arabic(right) if any("\u0600" <= ch <= "\u06ff" for ch in right) else b
+        transliterated = token_set_ratio(left_translit or "", right_translit or "") / 100
+    return round(max(direct, transliterated), 3)
 
 
 def compare_claim(field: str, submitted: str | None, observed: str | None) -> tuple[Status, dict]:
