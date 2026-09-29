@@ -1,0 +1,4 @@
+# Optional local OCR stack. The core application does not require it.
+paddleocr==3.7.0
+# Install the appropriate PaddlePaddle CPU/GPU runtime for your platform
+# following the official PaddlePaddle installation matrix.
