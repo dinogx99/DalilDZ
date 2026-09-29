@@ -121,6 +121,18 @@ async def analyze_case(db: OrmSession, case_id: str) -> tuple[AnalysisJob, Repor
             db.add(record)
             records.append(record)
 
+        manual_records = (
+            db.query(EvidenceRecord)
+            .filter(
+                EvidenceRecord.case_id == case_id,
+                EvidenceRecord.analysis_job_id.is_(None),
+                EvidenceRecord.source_id == "user_confirmed_official_source",
+            )
+            .order_by(EvidenceRecord.retrieved_at.asc())
+            .all()
+        )
+        records.extend(manual_records)
+
         for adapter in ADAPTERS:
             health = await adapter.health_check()
             if health == SourceHealth.MANUAL_ONLY:
