@@ -1,0 +1,2 @@
+# Legal and Limitations
+DalilDZ is an evidence and consistency engine, not a fraud detector. It does not determine trustworthiness, solvency, legitimacy, fraud, or safety. Respect source terms, robots policies, authentication, CAPTCHAs, rate limits and applicable law.
