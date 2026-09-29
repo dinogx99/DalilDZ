@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dalildz"
+version = "1.0.0"
+description = "Open-source evidence engine for Algerian business verification"
+readme = "../README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+dependencies = [
+  "fastapi==0.116.1",
+  "uvicorn[standard]==0.35.0",
+  "SQLAlchemy==2.0.43",
+  "pydantic==2.11.7",
+  "python-multipart==0.0.20",
+  "pypdf==6.0.0",
+  "Pillow==11.3.0",
+  "RapidFuzz==3.14.6",
+  "psycopg[binary]==3.2.9",
+  "httpx==0.28.1",
+  "alembic==1.20.0",
+  "celery[redis]==5.6.3",
+  "openpyxl==3.1.5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.1.1",
+  "ruff==0.16.9",
+]
+
+[project.scripts]
+dalildz = "app.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
