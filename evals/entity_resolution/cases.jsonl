@@ -6,5 +6,5 @@
 {"id":"different-names","synthetic":true,"submitted":{"legal_name":"ORAN MEDICAL SUPPLIES"},"observed":{"legal_name":"CONSTANTINE AGRI EXPORT"},"expected_relation":"INSUFFICIENT_EVIDENCE"}
 {"id":"arabic-identifiers","synthetic":true,"submitted":{"legal_name":"شركة النور","rc":"16B0123456"},"observed":{"legal_name":"شركة النور","rc":"16 B 0123456"},"expected_relation":"LIKELY_SAME_ENTITY"}
 {"id":"close-no-id","synthetic":true,"submitted":{"legal_name":"Atlas Distribution Algerie"},"observed":{"legal_name":"Atlas Distribution"},"expected_relation":"LIKELY_SAME_ENTITY"}
-{"id":"possible-match","synthetic":true,"submitted":{"legal_name":"Alpha Distribution Ouest"},"observed":{"legal_name":"Alpha Distribution Est"},"expected_relation":"POSSIBLE_MATCH"}
+{"id":"possible-match","synthetic":true,"submitted":{"legal_name":"Alpha Distribution Ouest"},"observed":{"legal_name":"Alpha Distribution Alger"},"expected_relation":"POSSIBLE_MATCH"}
 {"id":"mixed-form-punctuation","synthetic":true,"submitted":{"legal_name":"E.U.R.L. NOVA TECH"},"observed":{"legal_name":"NOVA-TECH EURL"},"expected_relation":"LIKELY_SAME_ENTITY"}

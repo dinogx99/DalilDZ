@@ -30,18 +30,26 @@ def build_report_payload(
             "name": case.name,
             "claims": case.claims,
         },
-        "documents": [{"id": doc.id, "sha256": doc.sha256} for doc in documents],
-        "evidence": [
+        "documents": sorted(doc.sha256 for doc in documents),
+        "evidence": sorted(
+            [
             {
-                "id": item.id,
                 "source_id": item.source_id,
                 "field": item.field,
                 "value": item.extracted_value,
                 "snapshot": item.source_snapshot_hash,
             }
             for item in evidence
-        ],
-        "checks": [
+            ],
+            key=lambda item: (
+                item["source_id"],
+                item["field"],
+                item.get("value") or "",
+                item.get("snapshot") or "",
+            ),
+        ),
+        "checks": sorted(
+            [
             {
                 "field": check.field,
                 "submitted": check.submitted_value,
@@ -50,7 +58,15 @@ def build_report_payload(
                 "method": check.method,
             }
             for check in checks
-        ],
+            ],
+            key=lambda item: (
+                item["field"],
+                item.get("submitted") or "",
+                item.get("observed") or "",
+                item["status"],
+                item["method"],
+            ),
+        ),
     }
     report_fingerprint = fingerprint(input_basis)
     return {
