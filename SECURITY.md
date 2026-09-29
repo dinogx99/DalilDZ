@@ -1,0 +1,2 @@
+# Security Policy
+DalilDZ validates upload signatures, limits upload size, uses ORM parameterization, keeps secrets in environment variables, and blocks private/loopback/link-local URL targets. Report vulnerabilities privately to the maintainer.
