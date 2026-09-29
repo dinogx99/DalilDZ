@@ -1,7 +1,5 @@
 import csv
 import io
-from typing import Iterable
-
 from openpyxl import load_workbook
 
 

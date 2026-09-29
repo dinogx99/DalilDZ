@@ -5,7 +5,6 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.core.db import Session, init_db
-from app.core.domain import compare_claim
 from app.entity_resolution.resolver import resolve_entities
 from app.extraction.ocr import get_ocr_provider
 from app.models.entities import Report

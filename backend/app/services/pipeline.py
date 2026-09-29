@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session as OrmSession
 
-from app.core.domain import SourceHealth, Status, compare_claim, fingerprint, uid
+from app.core.domain import SourceHealth, Status, compare_claim, uid
 from app.models.entities import (
     AnalysisJob,
     Case,

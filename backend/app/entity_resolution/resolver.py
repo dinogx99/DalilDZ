@@ -1,6 +1,6 @@
 from typing import Any
 
-from app.core.domain import Status, compare_claim, similarity
+from app.core.domain import compare_claim, similarity
 from app.normalization.algeria import normalize_identifier, normalize_legal_form
 
 

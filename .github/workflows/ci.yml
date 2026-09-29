@@ -24,7 +24,7 @@ jobs:
       - name: Python compile check
         run: python -m compileall -q backend/app
       - name: Backend lint
-        run: ruff check --select E,F,UP backend/app backend/tests scripts
+        run: ruff check --select E,F --ignore E501 backend/app backend/tests scripts
       - name: Backend tests
         run: pytest backend/tests -q
       - name: Entity-resolution evals

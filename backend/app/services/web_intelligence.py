@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from hashlib import sha256
 from html.parser import HTMLParser
-import json
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 from urllib.robotparser import RobotFileParser
 
 import httpx
