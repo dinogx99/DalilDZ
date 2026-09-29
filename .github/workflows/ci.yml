@@ -1,23 +1,69 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
- backend:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - uses: actions/setup-python@v5
-     with: {python-version: '3.12'}
-   - run: pip install -r backend/requirements.txt pytest httpx
-   - run: cd backend && pytest -q
- frontend:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - uses: actions/setup-node@v4
-     with: {node-version: '22'}
-   - run: cd frontend && npm install && npm run build
- docker:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - run: docker compose build
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend
+        run: pip install -e "backend[dev]"
+      - name: Python compile check
+        run: python -m compileall -q backend/app
+      - name: Backend lint
+        run: ruff check --select E,F,UP backend/app backend/tests scripts
+      - name: Backend tests
+        run: pytest backend/tests -q
+      - name: Entity-resolution evals
+        run: python scripts/run_evals.py
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package.json
+      - name: Install frontend
+        run: cd frontend && npm install
+      - name: Type check
+        run: cd frontend && npm run typecheck
+      - name: Production build
+        run: cd frontend && npm run build
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build containers
+        run: docker compose build
+      - name: Start infrastructure and API
+        run: |
+          docker compose up -d db redis backend
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/v1/health; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker compose ps
+          docker compose logs backend
+          exit 1
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
