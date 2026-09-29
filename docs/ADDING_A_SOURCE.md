@@ -1,0 +1,2 @@
+# Adding a Source
+Subclass EvidenceSourceAdapter, declare source_id/display_name/source_type, implement health_check and collect, add deterministic tests, document automation restrictions, and register the adapter without modifying verification rules.
