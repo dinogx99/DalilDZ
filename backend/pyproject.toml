@@ -10,7 +10,7 @@ readme = {text = "DalilDZ backend service", content-type = "text/markdown"}
 requires-python = ">=3.12"
 license = {text = "Apache-2.0"}
 dependencies = [
-  "fastapi==0.141.1",
+  "fastapi==0.142.2",
   "uvicorn[standard]==0.35.0",
   "SQLAlchemy==2.0.43",
   "pydantic==2.13.0",
