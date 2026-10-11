@@ -1,6 +1,6 @@
+import io
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import io
 from typing import Any
 
 from PIL import Image

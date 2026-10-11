@@ -6,8 +6,8 @@ os.environ["AI_PROVIDER"] = "none"
 
 import pytest
 
-from app.core.db import Base, engine
 import app.models.entities  # noqa: F401
+from app.core.db import Base, engine
 
 
 @pytest.fixture(autouse=True)

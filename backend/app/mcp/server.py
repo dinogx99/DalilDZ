@@ -11,7 +11,6 @@ from app.models.entities import Case, EvidenceRecord, Report
 from app.services.documents import process_document
 from app.sources.adapters import ADAPTERS
 
-
 mcp = MCPServer("DalilDZ")
 
 

@@ -88,10 +88,10 @@ def test_upload_validates_image_content_and_marks_ocr_required():
 
 def test_bulk_csv_import_and_case_listing():
     content = (
-        "company_name,rc,nif,website,wilaya\n"
-        "SYNTHETIC BETA,31B1111111,123456789012345,,Oran\n"
-        "SYNTHETIC GAMMA,16B2222222,,,Alger\n"
-    ).encode()
+        b"company_name,rc,nif,website,wilaya\n"
+        b"SYNTHETIC BETA,31B1111111,123456789012345,,Oran\n"
+        b"SYNTHETIC GAMMA,16B2222222,,,Alger\n"
+    )
     with TestClient(app) as client:
         response = client.post(
             "/api/v1/bulk/import",

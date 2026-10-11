@@ -3,7 +3,6 @@ import re
 import socket
 from urllib.parse import urlparse
 
-
 BLOCKED_HOSTS = {
     "localhost",
     "localhost.localdomain",

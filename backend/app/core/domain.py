@@ -1,7 +1,7 @@
-from enum import StrEnum
-from hashlib import sha256
 import json
 import uuid
+from enum import StrEnum
+from hashlib import sha256
 from urllib.parse import urlparse
 
 from rapidfuzz.fuzz import token_set_ratio

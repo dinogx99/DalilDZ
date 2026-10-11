@@ -1,7 +1,7 @@
 import io
 
-from openpyxl import Workbook
 import pytest
+from openpyxl import Workbook
 
 from app.services.bulk import parse_bulk_file
 

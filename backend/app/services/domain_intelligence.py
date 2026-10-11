@@ -1,7 +1,7 @@
 import asyncio
-from datetime import datetime, timezone
 import socket
 import ssl
+from datetime import UTC, datetime
 from urllib.parse import quote
 
 from app.normalization.algeria import normalize_domain
@@ -100,7 +100,7 @@ async def collect_domain_metadata(value: str) -> dict:
 
     return {
         "domain": domain,
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(UTC).isoformat(),
         "addresses": addresses,
         "tls": tls,
         "rdap": rdap,

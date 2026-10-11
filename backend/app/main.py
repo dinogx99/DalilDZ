@@ -7,7 +7,6 @@ from app.core.db import init_db
 from app.core.middleware import RateLimitMiddleware, SecurityAndCorrelationMiddleware
 from app.core.observability import configure_logging
 
-
 configure_logging()
 
 

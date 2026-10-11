@@ -1,7 +1,7 @@
 import csv
 import io
-from openpyxl import load_workbook
 
+from openpyxl import load_workbook
 
 EXPECTED_COLUMNS = {"company_name", "rc", "nif", "website", "wilaya", "legal_form"}
 

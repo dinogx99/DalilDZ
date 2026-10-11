@@ -5,3 +5,6 @@ __pycache__/
 node_modules/
 .next/
 uploads/
+next-env.d.ts
+*.tsbuildinfo
+*.egg-info/

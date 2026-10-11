@@ -1,0 +1,3 @@
+# Repository-wide Ruff configuration (mirrors backend/pyproject.toml so that
+# `ruff check backend/app backend/tests scripts` behaves the same from any directory).
+extend = "backend/pyproject.toml"

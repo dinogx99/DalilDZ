@@ -24,7 +24,7 @@ jobs:
       - name: Python compile check
         run: python -m compileall -q backend/app
       - name: Backend lint
-        run: ruff check --select E,F --ignore E501 backend/app backend/tests scripts
+        run: ruff check backend/app backend/tests scripts
       - name: Backend tests
         run: pytest backend/tests -q
       - name: Entity-resolution evals
@@ -38,9 +38,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: frontend/package.json
+          cache-dependency-path: frontend/package-lock.json
       - name: Install frontend
-        run: cd frontend && npm install
+        run: cd frontend && npm ci
       - name: Type check
         run: cd frontend && npm run typecheck
       - name: Production build
@@ -52,18 +52,29 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build containers
         run: docker compose build
-      - name: Start infrastructure and API
+      - name: Start full stack
+        run: docker compose up -d
+      - name: Wait for API and web app
         run: |
-          docker compose up -d db redis backend
-          for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:8000/api/v1/health; then
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/v1/health \
+              && curl --fail --silent http://127.0.0.1:3000/api/v1/health; then
               exit 0
             fi
             sleep 3
           done
           docker compose ps
-          docker compose logs backend
+          docker compose logs backend frontend worker
           exit 1
+      - name: Smoke-test case workflow through the web proxy
+        run: |
+          case_id=$(curl --fail --silent -X POST http://127.0.0.1:3000/api/v1/cases \
+            -H 'content-type: application/json' \
+            -d '{"name":"SYNTHETIC SMOKE","claims":{"rc":"16B0123456","wilaya":"Oran"}}' \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+          curl --fail --silent -X POST "http://127.0.0.1:3000/api/v1/cases/$case_id/analyze"
+          curl --fail --silent "http://127.0.0.1:3000/api/v1/cases/$case_id/report.html" | grep -q "evidence report"
+          curl --fail --silent "http://127.0.0.1:3000/cases/$case_id" > /dev/null
       - name: Cleanup
         if: always()
         run: docker compose down -v
