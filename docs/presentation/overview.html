@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;width:1600px;height:1000px;font-family:Inter,"DejaVu Sans",sans-serif;background:#f4f1e9;color:#17201f;overflow:hidden;-webkit-print-color-adjust:exact}
+.wrap{display:grid;grid-template-columns:720px 1fr;height:100%}
+.left{padding:70px 40px 50px 80px;display:flex;flex-direction:column}
+.brand{font-weight:850;font-size:30px;letter-spacing:-.04em}.brand span{color:#a96326}
+.eyebrow{font-size:14px;letter-spacing:.16em;font-weight:800;color:#0d625b;margin:44px 0 14px}
+h1{font-family:"Inter Display",Inter,sans-serif;font-size:66px;line-height:.98;letter-spacing:-.045em;margin:0;font-weight:800}
+.lede{font-size:20px;line-height:1.5;color:#5f6966;margin:24px 0 30px}
+.flow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.flow span{background:#fffdf8;border:1px solid #d8d3c7;border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px}
+.flow i{font-style:normal;color:#a96326;font-weight:800;align-self:center}
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feat{background:#fffdf8;border:1px solid #d8d3c7;border-radius:12px;padding:14px 16px}
+.feat b{display:block;font-size:16px;margin-bottom:4px}.feat small{color:#5f6966;font-size:13.5px;line-height:1.4;display:block}
+.foot{margin-top:auto;display:flex;justify-content:space-between;font-size:14px;color:#5f6966;padding-top:20px}
+.right{position:relative;background:#102b28;overflow:hidden}
+.s1{position:absolute;left:60px;top:70px;width:900px;border-radius:12px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.s2{position:absolute;left:560px;top:430px;width:300px;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);border:6px solid #0b1e1c}
+.s1 img,.s2 img{display:block;width:100%}
+.tag{position:absolute;left:60px;bottom:50px;color:#e3a868;font-weight:800;letter-spacing:.14em;font-size:13px}
+.tag2{position:absolute;left:60px;bottom:24px;color:#c9d3cf;font-size:14px}
+</style></head><body><div class="wrap">
+<div class="left">
+<div class="brand">Dalil<span>DZ</span></div>
+<p class="eyebrow">OPEN SOURCE · ALGERIA · EVIDENCE FIRST</p>
+<h1>Verify business claims. Keep the evidence.</h1>
+<p class="lede">An evidence engine for verifying Algerian suppliers and merchants. Every result shows what was checked, against which source, how and when — with no trust score and no fraud verdict.</p>
+<div class="flow"><span>Claims</span><i>→</i><span>Documents</span><i>→</i><span>Public evidence</span><i>→</i><span>Deterministic checks</span><i>→</i><span>Auditable report</span></div>
+<div class="feats">
+<div class="feat"><b>RC · NIF · NIS · legal form</b><small>Exact identifier rules, no AI guesswork</small></div>
+<div class="feat"><b>Arabic · French · English</b><small>58 wilayas, Arabic digits, RTL interface</small></div>
+<div class="feat"><b>PDF &amp; image documents</b><small>Claims extracted with page and file hash</small></div>
+<div class="feat"><b>Website · DNS · TLS · RDAP</b><small>SSRF-safe collection, failures stay explicit</small></div>
+<div class="feat"><b>JSON · CSV · printable PDF</b><small>Reproducible reports with fingerprints</small></div>
+<div class="feat"><b>API · CLI · MCP server</b><small>Self-hosted with Docker Compose</small></div>
+</div>
+<div class="foot"><span>github.com/dinogx99/DalilDZ</span><span>Apache-2.0</span></div>
+</div>
+<div class="right">
+<div class="s1"><img src="screenshots/02-case-top.png"></div>
+<div class="s2"><img src="screenshots/ar-mobile-case.png"></div>
+<div class="tag">EVIDENCE, NOT REPUTATION</div>
+<div class="tag2">FastAPI · Next.js · PostgreSQL · Redis · Celery</div>
+</div>
+</div></body></html>

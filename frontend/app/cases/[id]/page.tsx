@@ -176,7 +176,7 @@ export default function CasePage() {
         <div>
           <p className="eyebrow">{t.verificationCase}</p>
           <h1 dir="auto">{caseData.name}</h1>
-          <p className="muted mono small">{t.caseLabel} {caseData.id}</p>
+          <p className="muted small">{t.caseLabel} <span className="mono">{caseData.id}</span></p>
         </div>
         <div className="case-actions">
           <button onClick={analyze} disabled={busy}>{busy ? t.processing : t.runAnalysis}</button>

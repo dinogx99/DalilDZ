@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DalilDZ — project presentation</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+:root {
+  --paper: #f4f1e9; --card: #fffdf8; --ink: #17201f; --muted: #5f6966; --line: #d8d3c7;
+  --teal: #0d625b; --teal-soft: #e2f0ee; --amber: #a96326; --red: #8a2e27;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Inter, "DejaVu Sans", sans-serif; color: var(--ink); background: #ccc; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.slide { width: 1280px; height: 720px; position: relative; overflow: hidden; background: var(--paper); padding: 64px 80px; page-break-after: always; break-after: page; display: flex; flex-direction: column; }
+.slide:last-child { page-break-after: auto; break-after: auto; }
+.slide.dark { background: #102b28; color: #f4f1e9; }
+.eyebrow { font-size: 14px; letter-spacing: .16em; font-weight: 800; color: var(--teal); text-transform: uppercase; margin: 0 0 14px; }
+.dark .eyebrow { color: #e3a868; }
+h1 { font-family: "Inter Display", Inter, sans-serif; font-size: 76px; line-height: .98; letter-spacing: -.045em; margin: 0; font-weight: 800; }
+h2 { font-family: "Inter Display", Inter, sans-serif; font-size: 46px; line-height: 1.05; letter-spacing: -.035em; margin: 0 0 28px; font-weight: 800; max-width: 1000px; }
+p { margin: 0; }
+.lede { font-size: 22px; line-height: 1.5; color: var(--muted); max-width: 640px; }
+.dark .lede { color: #c9d3cf; }
+.brand { font-weight: 850; font-size: 22px; letter-spacing: -.04em; }
+.brand span { color: var(--amber); }
+.footer { position: absolute; left: 80px; right: 80px; bottom: 28px; display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.dark .footer { color: #8fa39e; }
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+.card h3 { margin: 8px 0 8px; font-size: 20px; letter-spacing: -.02em; }
+.card p { color: var(--muted); font-size: 15.5px; line-height: 1.5; }
+.num { font: 700 13px "DejaVu Sans Mono", monospace; color: var(--amber); }
+.shot { border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(20,40,36,.18); overflow: hidden; background: white; }
+.shot img { display: block; width: 100%; }
+.badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font: 700 12px "DejaVu Sans Mono", monospace; white-space: nowrap; }
+.b-verified { background: #dcefe5; color: #14543b; } .b-consistent { background: #e2f0ee; color: #175c56; }
+.b-conflicting { background: #f8dfdb; color: #8a2e27; } .b-neutral { background: #ecebe6; color: #5e625f; }
+.b-unavailable { background: #f2e4cf; color: #85501e; } .b-outdated { background: #eee4d5; color: #79571c; }
+.b-review { background: #fff0c9; color: #765714; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e3ddd1; vertical-align: top; }
+th { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+code, .mono { font-family: "DejaVu Sans Mono", monospace; font-size: .9em; }
+.flow { display: flex; align-items: stretch; gap: 0; margin-top: 8px; }
+.flow .step { flex: 1; background: var(--card); border: 1px solid var(--line); padding: 20px 18px; position: relative; }
+.flow .step:not(:last-child)::after { content: "→"; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); background: var(--paper); color: var(--amber); font-weight: 800; font-size: 20px; z-index: 2; width: 28px; text-align: center; }
+.flow .step b { display: block; font: 700 12px "DejaVu Sans Mono", monospace; color: var(--amber); margin-bottom: 8px; }
+.flow .step strong { display: block; font-size: 18px; margin-bottom: 6px; }
+.flow .step small { color: var(--muted); font-size: 14px; line-height: 1.45; display: block; }
+.quote { border-left: 4px solid var(--amber); padding: 14px 20px; background: rgba(255,253,248,.7); font-size: 19px; line-height: 1.5; }
+.dark .quote { background: rgba(255,255,255,.06); }
+ul.clean { list-style: none; padding: 0; margin: 0; }
+ul.clean li { padding: 9px 0 9px 28px; position: relative; font-size: 17px; line-height: 1.4; border-bottom: 1px solid #e3ddd1; }
+ul.clean li::before { content: ""; position: absolute; left: 4px; top: 16px; width: 10px; height: 10px; border-radius: 3px; background: var(--teal); }
+ul.clean.x li::before { background: var(--red); border-radius: 50%; }
+.stat { font-family: "Inter Display", Inter, sans-serif; font-size: 54px; font-weight: 800; letter-spacing: -.04em; color: var(--teal); line-height: 1; }
+.stat-label { color: var(--muted); font-size: 15px; margin-top: 8px; }
+.arch { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 22px; align-items: stretch; }
+.layer { border: 1px solid var(--line); border-radius: 14px; padding: 18px; background: var(--card); }
+.layer h4 { margin: 0 0 12px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pill { display: block; border: 1px solid var(--line); background: #faf8f2; border-radius: 9px; padding: 10px 12px; margin-bottom: 8px; font-size: 15px; }
+.pill small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.pill.core { background: var(--teal-soft); border-color: #b9d8d2; }
+.kbd { background: #17201f; color: #e9efe9; border-radius: 12px; padding: 22px 26px; font: 16px/1.7 "DejaVu Sans Mono", monospace; }
+.kbd .c { color: #8fa39e; }
+.ar { font-family: "DejaVu Sans", sans-serif; direction: rtl; unicode-bidi: isolate; }
+</style>
+</head>
+<body>
+
+<!-- 1. Title -->
+<section class="slide" style="padding-right:0">
+  <div style="display:grid;grid-template-columns:1fr 600px;gap:40px;height:100%">
+    <div style="display:flex;flex-direction:column;justify-content:center">
+      <div class="brand" style="margin-bottom:40px">Dalil<span>DZ</span></div>
+      <p class="eyebrow">Open source · Algeria · Evidence first</p>
+      <h1>Verify business claims. Keep the evidence.</h1>
+      <p class="lede" style="margin-top:26px">An open-source evidence engine for verifying Algerian businesses — suppliers, vendors and merchants — with a full audit trail and <strong style="color:var(--ink)">no trust score</strong>.</p>
+      <p style="margin-top:34px;font-size:15px;color:var(--muted)">github.com/dinogx99/DalilDZ · Apache-2.0</p>
+    </div>
+    <div style="display:flex;align-items:center">
+      <div class="shot" style="width:760px;transform:translateX(10px)"><img src="screenshots/02-case-top.png"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Problem -->
+<section class="slide">
+  <p class="eyebrow">The problem</p>
+  <h2>Vendor checks end up as a folder of invoices, screenshots and notes.</h2>
+  <div class="grid g2" style="gap:40px;margin-top:6px">
+    <div>
+      <p class="lede" style="margin-bottom:24px">Collecting more data is not the hard part. Keeping enough <strong style="color:var(--ink)">provenance</strong> to answer simple questions later is.</p>
+      <div class="quote">“Is the NIF on this invoice the same one the supplier gave us — and who checked it, when, and how?”</div>
+    </div>
+    <ul class="clean">
+      <li>Where did this RC number come from?</li>
+      <li>Did the invoice and the supplier record contain the same NIF?</li>
+      <li>Is “SARL” vs “S.A.R.L.” punctuation — or a real SARL/EURL conflict?</li>
+      <li>Was a field missing, or was the source itself down?</li>
+      <li>Was the result an exact rule or a fuzzy guess?</li>
+      <li>Can another reviewer reproduce it next month?</li>
+    </ul>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>02</span></div>
+</section>
+
+<!-- 3. Solution flow -->
+<section class="slide">
+  <p class="eyebrow">The solution</p>
+  <h2>DalilDZ turns verification into a structured evidence trail.</h2>
+  <div class="flow">
+    <div class="step"><b>01</b><strong>Submit claims</strong><small>Company name, RC, NIF, NIS, legal form, wilaya, website, phone, email</small></div>
+    <div class="step"><b>02</b><strong>Add documents</strong><small>PDF / JPG / PNG / WebP. Text extracted with page &amp; position; SHA-256 fingerprint</small></div>
+    <div class="step"><b>03</b><strong>Collect evidence</strong><small>Company website, DNS, TLS, RDAP, and manual checks on official sources (CNRC)</small></div>
+    <div class="step"><b>04</b><strong>Deterministic checks</strong><small>Exact identifier matching and explainable normalized comparisons</small></div>
+    <div class="step"><b>05</b><strong>Auditable report</strong><small>JSON · CSV · printable HTML/PDF with an immutable input fingerprint</small></div>
+  </div>
+  <div class="grid g3" style="margin-top:34px">
+    <div class="card"><span class="num">WHAT</span><h3>was checked</h3><p>Every finding names the field, the submitted value and the observed value.</p></div>
+    <div class="card"><span class="num">AGAINST WHAT</span><h3>which source</h3><p>Document hash and page, website URL and snapshot hash, or official source.</p></div>
+    <div class="card"><span class="num">HOW</span><h3>which method</h3><p>Exact rule, Algerian normalization, or similarity score — with a plain explanation.</p></div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>03</span></div>
+</section>
+
+<!-- 4. Status model -->
+<section class="slide">
+  <p class="eyebrow">Honest results</p>
+  <h2>Eight precise statuses. No “trusted” or “fraud” label.</h2>
+  <div class="grid g2" style="gap:44px">
+    <table>
+      <tr><td><span class="badge b-verified">VERIFIED</span></td><td>Matches comparable evidence under a deterministic rule</td></tr>
+      <tr><td><span class="badge b-consistent">CONSISTENT</span></td><td>Compatible with evidence, not an authoritative verification</td></tr>
+      <tr><td><span class="badge b-conflicting">CONFLICTING</span></td><td>Comparable values disagree</td></tr>
+      <tr><td><span class="badge b-neutral">NOT FOUND</span></td><td>A working source was searched, nothing found</td></tr>
+      <tr><td><span class="badge b-neutral">NOT VERIFIABLE</span></td><td>No evidence path for this field</td></tr>
+      <tr><td><span class="badge b-unavailable">SOURCE UNAVAILABLE</span></td><td>The source failed — never silently turned into “not found”</td></tr>
+      <tr><td><span class="badge b-outdated">OUTDATED</span></td><td>Evidence is outside its freshness window</td></tr>
+      <tr><td><span class="badge b-review">MANUAL REVIEW REQUIRED</span></td><td>A human or official manual check is needed</td></tr>
+    </table>
+    <div style="display:flex;flex-direction:column;gap:20px;justify-content:center">
+      <div class="card">
+        <span class="num">EXAMPLE</span>
+        <table style="font-size:14px;margin-top:8px">
+          <tr><th>Field</th><th>Submitted</th><th>Observed</th><th>Status</th></tr>
+          <tr><td class="mono">name</td><td>SARL ALPHA DISTRIBUTION</td><td>Alpha Distribution S.A.R.L.</td><td><span class="badge b-consistent">CONSISTENT</span></td></tr>
+          <tr><td class="mono">rc</td><td>16B0123456</td><td>16 B 0123456</td><td><span class="badge b-verified">VERIFIED</span></td></tr>
+          <tr><td class="mono">wilaya</td><td>Oran</td><td>Alger</td><td><span class="badge b-conflicting">CONFLICTING</span></td></tr>
+        </table>
+      </div>
+      <div class="quote" style="font-size:16px">This is a statement about the <em>information supplied</em> — not a verdict on whether the company is legitimate.</div>
+    </div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>04</span></div>
+</section>
+
+<!-- 5. Product: case page -->
+<section class="slide" style="padding-bottom:0">
+  <p class="eyebrow">Product tour · Verification case</p>
+  <div style="display:grid;grid-template-columns:330px 1fr;gap:40px;flex:1;min-height:0">
+    <div>
+      <h2 style="font-size:38px">Every finding traces back to its evidence.</h2>
+      <ul class="clean" style="font-size:15px">
+        <li>Status summary at a glance</li>
+        <li>Submitted vs observed value, source and method</li>
+        <li>Upload documents; claims extracted automatically</li>
+        <li>Record manual checks on official sources (CNRC / Sidjilcom)</li>
+        <li>Full analysis history and audit timeline</li>
+      </ul>
+    </div>
+    <div class="shot" style="align-self:start;margin-top:4px;height:600px"><img src="screenshots/02-case.png" style="margin-top:-300px"></div>
+  </div>
+</section>
+
+<!-- 6. Report -->
+<section class="slide" style="padding-bottom:0">
+  <p class="eyebrow">Product tour · Evidence report</p>
+  <div style="display:grid;grid-template-columns:1fr 560px;gap:44px;flex:1;min-height:0">
+    <div>
+      <h2 style="font-size:40px">A report another reviewer can reproduce.</h2>
+      <p class="lede" style="font-size:18px;margin-bottom:22px">Each analysis is stored as a new historical snapshot. Re-running on the same inputs produces the same <strong style="color:var(--ink)">input fingerprint</strong>.</p>
+      <ul class="clean" style="font-size:15px">
+        <li>Summary, submitted claims and every finding with its method</li>
+        <li>Sources consulted, their health and limitations</li>
+        <li>Documents with SHA-256 hashes</li>
+        <li>Export as JSON, CSV, or print / save as PDF</li>
+        <li>Clear disclaimer: no trust, solvency or fraud judgment</li>
+      </ul>
+    </div>
+    <div class="shot" style="height:640px"><img src="screenshots/03-report.png"></div>
+  </div>
+</section>
+
+<!-- 7. Built for Algeria -->
+<section class="slide">
+  <p class="eyebrow">Built for Algeria</p>
+  <h2>Arabic, French and Latin data — normalized explicitly.</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:40px">
+    <div>
+      <table style="font-size:15px">
+        <tr><th>Input</th><th>Normalized</th></tr>
+        <tr><td>S.A.R.L. Alpha Distribution</td><td class="mono">alpha distribution · SARL</td></tr>
+        <tr><td><span dir="ltr" style="unicode-bidi:isolate">١٦ B ٠١٢٣٤٥٦</span> (Arabic digits)</td><td class="mono">16B0123456</td></tr>
+        <tr><td><span class="ar">وهران</span> · 31 · Oran</td><td class="mono">Oran</td></tr>
+        <tr><td>0550 12 34 56</td><td class="mono">+213550123456</td></tr>
+        <tr><td>https://WWW.Example.DZ/contact</td><td class="mono">example.dz</td></tr>
+      </table>
+      <ul class="clean" style="font-size:15px;margin-top:14px">
+        <li>All 58 wilayas in Latin and Arabic, plus numeric codes</li>
+        <li>SARL, EURL, SPA, SNC, SCS — abbreviations and full French names</li>
+        <li>Arabic diacritics, hamza and tatweel; Arabic→Latin transliteration</li>
+      </ul>
+    </div>
+    <div>
+      <p style="font-size:17px;margin-bottom:14px">Interface in <strong>العربية</strong>, Français and English — with a full right-to-left layout.</p>
+      <div class="shot" style="height:360px"><img src="screenshots/ar-home-tablet.png"></div>
+    </div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>07</span></div>
+</section>
+
+<!-- 8. Principles -->
+<section class="slide">
+  <p class="eyebrow">Design principles</p>
+  <h2>What makes DalilDZ different</h2>
+  <div class="grid g3">
+    <div class="card"><span class="num">01</span><h3>Evidence, not reputation</h3><p>Reports evidence states. Never labels a company safe, fraudulent or trustworthy.</p></div>
+    <div class="card"><span class="num">02</span><h3>Deterministic first</h3><p>RC, NIF, NIS, legal form and wilaya checks are exact rules — no AI needed.</p></div>
+    <div class="card"><span class="num">03</span><h3>Provenance survives</h3><p>Source, method, document hash, page, retrieval time and snapshot hash are kept.</p></div>
+    <div class="card"><span class="num">04</span><h3>Failure is explicit</h3><p>A broken source is SOURCE UNAVAILABLE, never silently “not found”.</p></div>
+    <div class="card"><span class="num">05</span><h3>History is not rewritten</h3><p>A refresh creates a new analysis; earlier reports stay intact.</p></div>
+    <div class="card"><span class="num">06</span><h3>Lawful by design</h3><p>No CAPTCHA bypass or scraping of official registries. Manual-only sources stay manual.</p></div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>08</span></div>
+</section>
+
+<!-- 9. Architecture -->
+<section class="slide">
+  <p class="eyebrow">Architecture</p>
+  <h2>A modular, self-hostable stack</h2>
+  <div class="arch">
+    <div class="layer">
+      <h4>Clients</h4>
+      <span class="pill">Web app<small>Next.js · React · AR/FR/EN · RTL</small></span>
+      <span class="pill">REST API + OpenAPI<small>Swagger docs at /docs</small></span>
+      <span class="pill">dalildz CLI<small>doctor · verify · document · report</small></span>
+      <span class="pill">MCP server<small>7 tools for AI assistants</small></span>
+    </div>
+    <div class="layer">
+      <h4>Evidence engine · FastAPI + Celery</h4>
+      <span class="pill core">Document ingestion<small>MIME from bytes · PDF text · optional OCR (PaddleOCR)</small></span>
+      <span class="pill core">Algerian normalization &amp; entity resolution<small>Identifiers · legal forms · wilayas · transliteration</small></span>
+      <span class="pill core">Verification rules<small>Deterministic comparisons with explanations</small></span>
+      <span class="pill core">Reporting<small>Immutable snapshots · JSON · CSV · HTML/PDF</small></span>
+      <span class="pill">Optional AI layer<small>Ollama / OpenAI-compatible · off by default · never overrides rules</small></span>
+    </div>
+    <div class="layer">
+      <h4>Sources &amp; storage</h4>
+      <span class="pill">Company website<small>robots-aware · SSRF-safe · size/time caps</small></span>
+      <span class="pill">DNS · TLS · RDAP<small>technical metadata only</small></span>
+      <span class="pill">CNRC / Sidjilcom<small>manual official workflow</small></span>
+      <span class="pill">PostgreSQL<small>cases · evidence · checks · reports · audit</small></span>
+      <span class="pill">Redis<small>background analysis queue</small></span>
+    </div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>09</span></div>
+</section>
+
+<!-- 10. Security & quality -->
+<section class="slide">
+  <p class="eyebrow">Security, privacy &amp; quality</p>
+  <h2>Built to handle sensitive commercial documents</h2>
+  <div class="grid g4" style="margin-bottom:26px">
+    <div class="card"><div class="stat">46</div><div class="stat-label">automated backend tests</div></div>
+    <div class="card"><div class="stat">10/10</div><div class="stat-label">entity-resolution evaluations</div></div>
+    <div class="card"><div class="stat">0</div><div class="stat-label">known dependency vulnerabilities (pip-audit, npm audit)</div></div>
+    <div class="card"><div class="stat">5</div><div class="stat-label">services verified end-to-end with Docker Compose</div></div>
+  </div>
+  <div class="grid g2" style="gap:40px">
+    <ul class="clean" style="font-size:15.5px">
+      <li>File type verified from bytes, upload size limits, SHA-256 fingerprints</li>
+      <li>SSRF protection: blocks private, loopback, link-local and cloud-metadata targets</li>
+      <li>Redirect re-validation, timeouts and response-size caps</li>
+      <li>Security headers, request IDs, rate limiting, non-root containers</li>
+    </ul>
+    <ul class="clean" style="font-size:15.5px">
+      <li>No telemetry, no third-party AI calls by default</li>
+      <li>Document content never written to access logs</li>
+      <li>CI: lint, type check, tests, evals, production build, full-stack smoke test</li>
+      <li>CodeQL, dependency audits and Dependabot</li>
+    </ul>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>10</span></div>
+</section>
+
+<!-- 11. Run it + roadmap -->
+<section class="slide">
+  <p class="eyebrow">Try it</p>
+  <h2>Running in one command</h2>
+  <div class="grid g2" style="gap:44px">
+    <div>
+      <div class="kbd">
+        <span class="c"># requires Docker</span><br>
+        git clone https://github.com/dinogx99/DalilDZ<br>
+        cd DalilDZ<br>
+        docker compose up --build<br><br>
+        <span class="c"># web app   → http://localhost:3000</span><br>
+        <span class="c"># API docs  → http://localhost:8000/docs</span>
+      </div>
+      <p style="margin-top:18px;color:var(--muted);font-size:15px">Ideal for procurement, accounting, compliance and marketplace teams. CSV/XLSX bulk import handles up to 1,000 vendors at a time.</p>
+    </div>
+    <div>
+      <p class="num" style="margin-bottom:10px">ROADMAP</p>
+      <ul class="clean" style="font-size:16px">
+        <li>Dedicated OCR image with a tested CPU runtime</li>
+        <li>Server-side PDF report generation</li>
+        <li>Case search and filtering; reviewer notes and approvals</li>
+        <li>Authentication and organization boundaries</li>
+        <li>Additional Algerian public sources where lawful documented access exists</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span class="brand" style="font-size:15px">Dalil<span>DZ</span></span><span>11</span></div>
+</section>
+
+<!-- 12. Closing -->
+<section class="slide dark" style="justify-content:center">
+  <div class="brand" style="font-size:30px;margin-bottom:34px">Dalil<span>DZ</span></div>
+  <p class="eyebrow"><span style="letter-spacing:0;font-size:18px">دليل</span> · dalil = evidence, guide</p>
+  <h1 style="max-width:980px">Evidence and consistency — not a trust score.</h1>
+  <p class="lede" style="margin-top:28px;max-width:820px">Open source under Apache-2.0. Contributions welcome: Algerian data sources, Arabic/French document fixtures, normalization edge cases, accessibility.</p>
+  <p style="margin-top:44px;font-size:22px;font-weight:700">github.com/dinogx99/DalilDZ</p>
+  <p style="margin-top:60px;font-size:13px;color:#8fa39e;max-width:900px;line-height:1.5">DalilDZ does not determine whether an entity is trustworthy, solvent, legitimate, fraudulent, or safe. It reports evidence and inconsistencies found in supplied and publicly available information. All examples use synthetic test data.</p>
+</section>
+
+</body>
+</html>

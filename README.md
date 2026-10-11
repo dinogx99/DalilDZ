@@ -12,6 +12,10 @@ DalilDZ is a provenance-first verification workspace for Algerian business infor
 
 **DalilDZ is not a fraud detector and does not produce a trust score.**
 
+![DalilDZ overview](docs/presentation/DalilDZ-overview.png)
+
+📑 **Presentation:** [DalilDZ-presentation.pdf](docs/presentation/DalilDZ-presentation.pdf) · **Sample report:** [sample-evidence-report.pdf](docs/presentation/sample-evidence-report.pdf) · [Screenshots](docs/presentation/screenshots/)
+
 ---
 
 ## Why this project exists
