@@ -1,8 +1,11 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import NoReturn
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse, PlainTextResponse
-from sqlalchemy import desc
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from sqlalchemy import desc, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.core.db import Session
@@ -27,7 +30,13 @@ from app.normalization.algeria import (
     normalize_legal_form,
     normalize_wilaya,
 )
-from app.schemas import CaseCreate, CasePatch, ClaimCreate, EntityResolutionRequest, ManualEvidenceCreate
+from app.schemas import (
+    CaseCreate,
+    CasePatch,
+    ClaimCreate,
+    EntityResolutionRequest,
+    ManualEvidenceCreate,
+)
 from app.services.audit import record_audit
 from app.services.bulk import parse_bulk_file
 from app.services.documents import process_document
@@ -37,11 +46,10 @@ from app.services.security import sanitize_filename
 from app.sources.adapters import ADAPTERS
 from app.workers.celery_app import analyze_case_task
 
-
 r = APIRouter(prefix="/api/v1")
 
 
-def fail(status_code: int, code: str, message: str) -> None:
+def fail(status_code: int, code: str, message: str) -> NoReturn:
     raise HTTPException(status_code=status_code, detail={"code": code, "message": message})
 
 
@@ -85,8 +93,13 @@ def sync_entity(db, case: Case) -> BusinessEntity:
     entity.website = claims.get("website")
     entity.emails = [claims["email"]] if claims.get("email") else []
     entity.phones = [claims["phone"]] if claims.get("phone") else []
-    entity.updated_at = datetime.now(timezone.utc)
+    entity.updated_at = datetime.now(UTC)
     return entity
+
+
+def _aware(value: datetime) -> datetime:
+    # SQLite returns naive datetimes even for timezone-aware columns.
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
 def latest_job(db, case_id: str) -> AnalysisJob | None:
@@ -109,8 +122,14 @@ def latest_report(db, case_id: str) -> Report | None:
 
 @r.get("/health")
 def health():
-    with Session() as db:
-        db.execute(__import__("sqlalchemy").text("SELECT 1"))
+    try:
+        with Session() as db:
+            db.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "version": "1.0.0", "database": "unavailable"},
+        )
     return {"status": "ok", "version": "1.0.0", "database": "ok"}
 
 
@@ -265,7 +284,7 @@ async def upload_document(case_id: str, request: Request, file: UploadFile = Fil
 
     try:
         provider = get_ocr_provider(settings.ocr_provider)
-        processed = process_document(data, provider)
+        processed = await run_in_threadpool(process_document, data, provider)
     except ValueError as exc:
         fail(400, str(exc), "The uploaded file could not be accepted.")
     except RuntimeError as exc:
@@ -529,14 +548,22 @@ def get_evidence(case_id: str, job_id: str | None = None):
 @r.get("/cases/{case_id}/checks")
 def get_checks(case_id: str, job_id: str | None = None):
     with Session() as db:
-        selected_job = job_id or (latest_job(db, case_id).id if latest_job(db, case_id) else None)
+        job = db.get(AnalysisJob, job_id) if job_id else latest_job(db, case_id)
         query = db.query(VerificationCheck).filter(VerificationCheck.case_id == case_id)
-        if selected_job:
-            query = query.filter(
-                (VerificationCheck.analysis_job_id == selected_job)
-                | (VerificationCheck.analysis_job_id.is_(None))
-            )
-        checks = query.order_by(desc(VerificationCheck.checked_at)).all()
+        if job:
+            # Manual checks (no job) are re-evaluated by every later analysis, so only show
+            # the ones recorded after the selected job started; older ones are already in it.
+            started = _aware(job.started_at or job.created_at)
+            checks = [
+                item
+                for item in query.filter(
+                    (VerificationCheck.analysis_job_id == job.id)
+                    | (VerificationCheck.analysis_job_id.is_(None))
+                ).order_by(desc(VerificationCheck.checked_at))
+                if item.analysis_job_id or _aware(item.checked_at) >= started
+            ]
+        else:
+            checks = query.order_by(desc(VerificationCheck.checked_at)).all()
         return [
             {
                 "id": item.id,
@@ -570,7 +597,15 @@ def get_report_html(case_id: str):
         report = latest_report(db, case_id)
         if not report:
             fail(404, "REPORT_NOT_FOUND", "Run analysis before requesting a report.")
-        return HTMLResponse(render_report_html(report.payload))
+        return HTMLResponse(
+            render_report_html(report.payload),
+            headers={
+                "Content-Security-Policy": (
+                    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+                    "frame-ancestors 'none'; base-uri 'none'"
+                )
+            },
+        )
 
 
 @r.get("/cases/{case_id}/report.csv", response_class=PlainTextResponse)

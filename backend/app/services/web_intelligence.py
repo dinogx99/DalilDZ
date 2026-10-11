@@ -72,43 +72,50 @@ async def fetch_public_url(url: str, *, respect_robots: bool = True) -> FetchRes
     if respect_robots and not await robots_allowed(current):
         raise SourceFetchError("ROBOTS_DISALLOWED")
 
-    async with httpx.AsyncClient(
-        timeout=settings.http_timeout_seconds,
-        follow_redirects=False,
-        headers=headers,
-    ) as client:
-        for _ in range(settings.max_redirects + 1):
-            validate_public_url(current)
-            async with client.stream("GET", current) as response:
-                if response.status_code in {301, 302, 303, 307, 308}:
-                    target = response.headers.get("location")
-                    if not target:
-                        raise SourceFetchError("INVALID_REDIRECT")
-                    current = validate_public_url(urljoin(current, target))
-                    continue
+    try:
+        async with httpx.AsyncClient(
+            timeout=settings.http_timeout_seconds,
+            follow_redirects=False,
+            headers=headers,
+        ) as client:
+            for _ in range(settings.max_redirects + 1):
+                validate_public_url(current)
+                async with client.stream("GET", current) as response:
+                    if response.status_code in {301, 302, 303, 307, 308}:
+                        target = response.headers.get("location")
+                        if not target:
+                            raise SourceFetchError("INVALID_REDIRECT")
+                        current = validate_public_url(urljoin(current, target))
+                        continue
 
-                if response.status_code >= 400:
-                    raise SourceFetchError(f"HTTP_{response.status_code}")
+                    if response.status_code >= 400:
+                        raise SourceFetchError(f"HTTP_{response.status_code}")
 
-                declared = response.headers.get("content-length")
-                if declared and int(declared) > settings.max_http_bytes:
-                    raise SourceFetchError("RESPONSE_TOO_LARGE")
-
-                chunks: list[bytes] = []
-                size = 0
-                async for chunk in response.aiter_bytes():
-                    size += len(chunk)
-                    if size > settings.max_http_bytes:
+                    declared = response.headers.get("content-length", "")
+                    if declared.isdigit() and int(declared) > settings.max_http_bytes:
                         raise SourceFetchError("RESPONSE_TOO_LARGE")
-                    chunks.append(chunk)
-                body = b"".join(chunks)
-                return FetchResult(
-                    final_url=str(response.url),
-                    status_code=response.status_code,
-                    content_type=response.headers.get("content-type", "").split(";")[0],
-                    body=body,
-                    snapshot_hash=sha256(body).hexdigest(),
-                )
+
+                    chunks: list[bytes] = []
+                    size = 0
+                    async for chunk in response.aiter_bytes():
+                        size += len(chunk)
+                        if size > settings.max_http_bytes:
+                            raise SourceFetchError("RESPONSE_TOO_LARGE")
+                        chunks.append(chunk)
+                    body = b"".join(chunks)
+                    return FetchResult(
+                        final_url=str(response.url),
+                        status_code=response.status_code,
+                        content_type=response.headers.get("content-type", "").split(";")[0],
+                        body=body,
+                        snapshot_hash=sha256(body).hexdigest(),
+                    )
+    except httpx.TimeoutException as exc:
+        raise SourceFetchError("NETWORK_TIMEOUT") from exc
+    except httpx.HTTPError as exc:
+        # httpx network errors are not OSError subclasses; normalize them so callers
+        # report SOURCE_UNAVAILABLE instead of failing the whole analysis.
+        raise SourceFetchError(f"NETWORK_ERROR:{exc.__class__.__name__}") from exc
     raise SourceFetchError("TOO_MANY_REDIRECTS")
 
 

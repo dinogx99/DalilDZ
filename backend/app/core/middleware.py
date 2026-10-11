@@ -1,7 +1,7 @@
-from collections import defaultdict, deque
 import logging
 import time
 import uuid
+from collections import defaultdict, deque
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -9,8 +9,18 @@ from starlette.responses import JSONResponse
 
 from app.core.config import settings
 
-
 logger = logging.getLogger("dalildz.http")
+
+DEFAULT_CSP = "default-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc"}
+DOCS_CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+    "font-src 'self' https://fonts.gstatic.com; "
+    "img-src 'self' data: https://fastapi.tiangolo.com; "
+    "worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'"
+)
 
 
 class SecurityAndCorrelationMiddleware(BaseHTTPMiddleware):
@@ -35,14 +45,27 @@ class SecurityAndCorrelationMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; frame-ancestors 'none'; base-uri 'self'"
-        )
+        if "content-security-policy" not in response.headers:
+            path = request.url.path
+            if path in DOCS_PATHS:
+                # Swagger UI / ReDoc load their bundles from jsDelivr and use inline bootstrap code.
+                response.headers["Content-Security-Policy"] = DOCS_CSP
+            else:
+                response.headers["Content-Security-Policy"] = DEFAULT_CSP
         return response
+
+
+MAX_TRACKED_CLIENTS = 10_000
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     _hits: dict[str, deque[float]] = defaultdict(deque)
+
+    def _evict_stale(self, now: float) -> None:
+        # Keep the in-memory table bounded: drop clients without hits in the last minute.
+        stale = [key for key, hits in self._hits.items() if not hits or now - hits[-1] > 60]
+        for key in stale:
+            del self._hits[key]
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path.endswith("/health"):
@@ -50,6 +73,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         key = request.client.host if request.client else "unknown"
         now = time.monotonic()
+        if len(self._hits) > MAX_TRACKED_CLIENTS:
+            self._evict_stale(now)
         window = self._hits[key]
         while window and now - window[0] > 60:
             window.popleft()

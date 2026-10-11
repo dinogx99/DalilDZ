@@ -50,6 +50,8 @@ class WebsitePublicSource(EvidenceSourceAdapter):
         website = claims.get("website")
         if not website:
             return CollectionResult(health=SourceHealth.AVAILABLE)
+        if "://" not in website:
+            website = f"https://{website.strip()}"
         try:
             result = await collect_website_metadata(website)
         except (SourceFetchError, ValueError, OSError) as exc:

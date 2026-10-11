@@ -1,7 +1,7 @@
 import io
 
-from PIL import Image
 import pytest
+from PIL import Image
 
 from app.extraction.ocr import DisabledOCRProvider
 from app.services.documents import (
@@ -28,6 +28,14 @@ def test_document_classification_uses_deterministic_markers():
     assert classify_document("FACTURE\nTotal TTC 1000 DZD") == "invoice"
     assert classify_document("DEVIS N° 22\nOffre de prix") == "devis"
     assert classify_document("Registre de commerce RC: 16B0123456") == "registre_de_commerce"
+
+
+def test_identifiers_and_substrings_do_not_misclassify_documents():
+    # Invoices normally carry an RC number; that alone must not make them registry extracts.
+    assert classify_document("FACTURE N° 12\nRC: 16B0123456\nTotal TTC 1000") == "invoice"
+    # "rib" inside "distribution" is not a bank RIB marker.
+    assert classify_document("Alpha Distribution") == "unidentified_commercial_document"
+    assert classify_document("RIB: 00799999000123456789") == "bank_rib"
 
 
 def test_claim_extraction_keeps_locations_and_normalizes_identifiers():

@@ -1,12 +1,11 @@
-from collections import Counter
 import csv
-from datetime import datetime, timezone
-from html import escape
 import io
+from collections import Counter
+from datetime import UTC, datetime
+from html import escape
 
 from app.core.domain import fingerprint
 from app.models.entities import AnalysisJob, Case, Document, EvidenceRecord, VerificationCheck
-
 
 DISCLAIMER = (
     "DalilDZ does not determine whether an entity is trustworthy, solvent, legitimate, "
@@ -71,7 +70,7 @@ def build_report_payload(
     report_fingerprint = fingerprint(input_basis)
     return {
         "schema_version": "1.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "input_fingerprint": report_fingerprint,
         "case": {
             "id": case.id,
@@ -129,41 +128,132 @@ def build_report_payload(
     }
 
 
+STATUS_COLORS = {
+    "VERIFIED": ("#dcefe5", "#14543b"),
+    "CONSISTENT": ("#e2f0ee", "#175c56"),
+    "CONFLICTING": ("#f8dfdb", "#8a2e27"),
+    "SOURCE_UNAVAILABLE": ("#f2e4cf", "#85501e"),
+    "OUTDATED": ("#eee4d5", "#79571c"),
+    "MANUAL_REVIEW_REQUIRED": ("#fff0c9", "#765714"),
+}
+
+
+def _badge(status: str) -> str:
+    background, color = STATUS_COLORS.get(status, ("#ecebe6", "#5e625f"))
+    return (
+        f'<span class="badge" style="background:{background};color:{color}">'
+        f"{escape(status.replace('_', ' '))}</span>"
+    )
+
+
+def _text(value: object) -> str:
+    return escape(str(value)) if value not in (None, "") else "—"
+
+
 def render_report_html(payload: dict) -> str:
-    rows = []
-    for finding in payload.get("findings", []):
-        rows.append(
-            "<tr>"
-            f"<td>{escape(str(finding.get('field', '')))}</td>"
-            f"<td>{escape(str(finding.get('submitted_value') or '—'))}</td>"
-            f"<td>{escape(str(finding.get('observed_value') or '—'))}</td>"
-            f"<td><strong>{escape(str(finding.get('status', '')))}</strong></td>"
-            f"<td>{escape(str(finding.get('explanation', '')))}</td>"
-            "</tr>"
-        )
+    case = payload.get("case", {})
+    findings = payload.get("findings", [])
+    finding_rows = "".join(
+        "<tr>"
+        f"<td><code>{_text(item.get('field'))}</code></td>"
+        f"<td>{_text(item.get('submitted_value'))}</td>"
+        f"<td>{_text(item.get('observed_value'))}</td>"
+        f"<td>{_badge(str(item.get('status', '')))}</td>"
+        f"<td>{_text((item.get('metadata') or {}).get('source_id'))}</td>"
+        f"<td>{_text(item.get('explanation'))}<br><small>{_text(item.get('method'))}</small></td>"
+        "</tr>"
+        for item in findings
+    )
+    summary_cards = "".join(
+        f'<div class="card">{_badge(status)}<strong>{count}</strong></div>'
+        for status, count in (payload.get("summary") or {}).items()
+    ) or '<div class="card">No findings<strong>0</strong></div>'
+    claim_rows = "".join(
+        f"<tr><th>{_text(field)}</th><td>{_text(value)}</td></tr>"
+        for field, value in (case.get("submitted_claims") or {}).items()
+    ) or '<tr><td colspan="2">No submitted claims.</td></tr>'
+    source_rows = "".join(
+        "<tr>"
+        f"<td>{_text(item.get('name'))}</td>"
+        f"<td>{_text(item.get('automation_mode'))}</td>"
+        f"<td>{_text(item.get('health'))}</td>"
+        f"<td>{_text(item.get('error_code'))}</td>"
+        f"<td>{_text(item.get('limitations'))}</td>"
+        "</tr>"
+        for item in payload.get("sources", [])
+    ) or '<tr><td colspan="5">No automated sources were consulted.</td></tr>'
+    document_rows = "".join(
+        "<tr>"
+        f"<td>{_text(item.get('filename'))}</td>"
+        f"<td>{_text(item.get('document_type'))}</td>"
+        f"<td>{_text(item.get('extraction_method'))}</td>"
+        f"<td><code>{_text(item.get('sha256'))}</code></td>"
+        "</tr>"
+        for item in payload.get("documents", [])
+    ) or '<tr><td colspan="4">No documents were attached.</td></tr>'
+    limitations = "".join(f"<li>{_text(item)}</li>" for item in payload.get("limitations", []))
+    methodology = "".join(
+        f"<li><strong>{_text(key)}</strong>: {_text(value)}</li>"
+        for key, value in (payload.get("methodology") or {}).items()
+    )
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>DalilDZ report — {escape(payload['case']['name'])}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DalilDZ evidence report — {_text(case.get('name'))}</title>
 <style>
-body{{font-family:Arial,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#17202a}}
-h1,h2{{color:#173f3b}}table{{width:100%;border-collapse:collapse;margin:20px 0}}
-th,td{{border:1px solid #d8d8d0;padding:10px;text-align:left;vertical-align:top}}
-th{{background:#f4f1e8}}code{{font-size:.9em}}.note{{background:#fff8e8;padding:14px;border-left:4px solid #c77b30}}
-@media print{{body{{margin:0;max-width:none}}}}
+body{{font-family:Inter,"Segoe UI",Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 24px;color:#17202a;line-height:1.45}}
+header{{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid #0d625b;padding-bottom:16px}}
+.brand{{font-weight:800;font-size:1.4rem;letter-spacing:-.03em}}.brand span{{color:#a96326}}
+h1{{margin:6px 0 4px;color:#173f3b;font-size:1.9rem}}h2{{color:#173f3b;margin-top:34px;font-size:1.2rem}}
+.meta{{color:#5e625f;font-size:.85rem}}code{{font-size:.82em;word-break:break-all}}
+table{{width:100%;border-collapse:collapse;margin:12px 0;font-size:.88rem}}
+th,td{{border:1px solid #d8d8d0;padding:8px 10px;text-align:left;vertical-align:top}}
+thead th,.kv th{{background:#f4f1e8}}td:first-child{{white-space:nowrap}}.kv th{{width:200px}}small{{color:#66706d}}
+.cards{{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}}
+.card{{border:1px solid #d8d3c7;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px}}
+.card strong{{font-size:1.4rem}}
+.badge{{display:inline-block;padding:3px 8px;border-radius:999px;font:700 .68rem ui-monospace,monospace;white-space:nowrap}}
+.note{{background:#fff8e8;padding:14px;border-left:4px solid #c77b30;margin-top:28px}}
+button{{background:#0d625b;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-weight:700;cursor:pointer}}
+@media print{{body{{margin:0;max-width:none}}.no-print{{display:none}}h2{{break-after:avoid}}tr{{break-inside:avoid}}}}
 </style>
 </head>
 <body>
-<h1>DalilDZ evidence report</h1>
-<p><strong>Case:</strong> {escape(payload['case']['name'])}</p>
-<p><strong>Input fingerprint:</strong> <code>{escape(payload['input_fingerprint'])}</code></p>
+<header>
+<div>
+<div class="brand">Dalil<span>DZ</span> evidence report</div>
+<h1>{_text(case.get('name'))}</h1>
+<div class="meta">Case <code>{_text(case.get('id'))}</code> · generated {_text(payload.get('generated_at'))}</div>
+<div class="meta">Input fingerprint <code>{_text(payload.get('input_fingerprint'))}</code></div>
+</div>
+<button class="no-print" onclick="window.print()">Print / save as PDF</button>
+</header>
+<h2>Summary</h2>
+<div class="cards">{summary_cards}</div>
+<h2>Submitted claims</h2>
+<table class="kv"><tbody>{claim_rows}</tbody></table>
 <h2>Evidence findings</h2>
 <table>
-<thead><tr><th>Field</th><th>Submitted</th><th>Observed</th><th>Status</th><th>Why</th></tr></thead>
-<tbody>{''.join(rows)}</tbody>
+<thead><tr><th>Field</th><th>Submitted</th><th>Observed</th><th>Status</th><th>Source</th><th>Why / method</th></tr></thead>
+<tbody>{finding_rows or '<tr><td colspan="6">No findings.</td></tr>'}</tbody>
 </table>
-<div class="note">{escape(payload['disclaimer'])}</div>
+<h2>Sources consulted</h2>
+<table>
+<thead><tr><th>Source</th><th>Mode</th><th>Health</th><th>Error</th><th>Limitations</th></tr></thead>
+<tbody>{source_rows}</tbody>
+</table>
+<h2>Documents</h2>
+<table>
+<thead><tr><th>File</th><th>Type</th><th>Extraction</th><th>SHA-256</th></tr></thead>
+<tbody>{document_rows}</tbody>
+</table>
+<h2>Methodology</h2>
+<ul>{methodology}</ul>
+<h2>Limitations</h2>
+<ul>{limitations}</ul>
+<div class="note">{_text(payload.get('disclaimer'))}</div>
 </body></html>"""
 
 

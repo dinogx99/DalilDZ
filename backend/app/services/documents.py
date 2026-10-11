@@ -1,15 +1,14 @@
-from dataclasses import dataclass
-from hashlib import sha256
 import io
 import re
+from dataclasses import dataclass
+from hashlib import sha256
 
+import pypdfium2 as pdfium
 from PIL import Image
 from pypdf import PdfReader
-import pypdfium2 as pdfium
 
 from app.extraction.ocr import OCRProvider
 from app.normalization.algeria import normalize_identifier, normalize_legal_form
-
 
 PATTERNS: dict[str, re.Pattern[str]] = {
     "rc": re.compile(r"(?i)\bRC\s*[:#\-]?\s*([0-9]{2}\s*[A-Z]\s*[0-9]{5,12})"),
@@ -66,19 +65,25 @@ def sniff_mime(data: bytes) -> str:
     raise ValueError("UNSUPPORTED_FILE_TYPE")
 
 
-def classify_document(text: str) -> str:
-    folded = text.casefold()
-    candidates = (
-        ("registre_de_commerce", ("registre de commerce", "rc n°", "rc:")),
-        ("invoice", ("facture", "invoice", "total ttc", "montant ttc")),
-        ("devis", ("devis", "quotation", "offre de prix")),
-        ("purchase_order", ("bon de commande", "purchase order")),
-        ("bank_rib", ("releve d'identite bancaire", "rib", "iban")),
-        ("receipt", ("reçu", "receipt", "quittance")),
-        ("certificate", ("certificat", "attestation", "certificate")),
+DOCUMENT_TYPES: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
+    (document_type, re.compile(r"(?<![\w])(?:" + "|".join(markers) + r")(?![\w])", re.IGNORECASE))
+    for document_type, markers in (
+        # Ordered from most to least specific. Identifiers such as "RC:" appear on most
+        # commercial documents, so they are not used as markers for the registry extract.
+        ("registre_de_commerce", (r"registre\s+(?:du|de)\s+commerce", r"extrait\s+du\s+registre")),
+        ("invoice", (r"facture", r"invoice", r"total\s+ttc", r"montant\s+ttc")),
+        ("devis", (r"devis", r"quotation", r"offre\s+de\s+prix")),
+        ("purchase_order", (r"bon\s+de\s+commande", r"purchase\s+order")),
+        ("bank_rib", (r"relev[eé]\s+d['’]identit[eé]\s+bancaire", r"rib", r"iban")),
+        ("receipt", (r"re[çc]u", r"receipt", r"quittance")),
+        ("certificate", (r"certificat", r"attestation", r"certificate")),
     )
-    for document_type, markers in candidates:
-        if any(marker in folded for marker in markers):
+)
+
+
+def classify_document(text: str) -> str:
+    for document_type, pattern in DOCUMENT_TYPES:
+        if pattern.search(text):
             return document_type
     return "unidentified_commercial_document"
 

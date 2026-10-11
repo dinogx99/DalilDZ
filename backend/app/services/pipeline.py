@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session as OrmSession
 
@@ -24,6 +24,7 @@ from app.normalization.algeria import (
 )
 from app.services.reporting import build_report_payload
 from app.sources.adapters import ADAPTERS
+from app.sources.base import CollectionResult
 
 
 def _normalize_field(field: str, value: str | None) -> str | None:
@@ -81,7 +82,7 @@ async def analyze_case(db: OrmSession, case_id: str) -> tuple[AnalysisJob, Repor
         id=uid(),
         case_id=case_id,
         status="RUNNING",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db.add(job)
     db.commit()
@@ -139,7 +140,13 @@ async def analyze_case(db: OrmSession, case_id: str) -> tuple[AnalysisJob, Repor
                 source_states.append(adapter.metadata(health))
                 continue
 
-            result = await adapter.collect(case.claims or {})
+            try:
+                result = await adapter.collect(case.claims or {})
+            except Exception as exc:  # an adapter failure must never abort the analysis
+                result = CollectionResult(
+                    health=SourceHealth.UNAVAILABLE,
+                    error_code=f"ADAPTER_ERROR:{exc.__class__.__name__}",
+                )
             state = adapter.metadata(result.health)
             state["error_code"] = result.error_code
             source_states.append(state)
@@ -269,7 +276,7 @@ async def analyze_case(db: OrmSession, case_id: str) -> tuple[AnalysisJob, Repor
             checks.append(check)
 
         job.status = "COMPLETED"
-        job.finished_at = datetime.now(timezone.utc)
+        job.finished_at = datetime.now(UTC)
         db.flush()
 
         payload = build_report_payload(
@@ -300,5 +307,5 @@ async def analyze_case(db: OrmSession, case_id: str) -> tuple[AnalysisJob, Repor
                 failed.status = "FAILED"
                 failed.error_code = exc.__class__.__name__.upper()
                 failed.error_message = str(exc)[:1000]
-                failed.finished_at = datetime.now(timezone.utc)
+                failed.finished_at = datetime.now(UTC)
         raise
