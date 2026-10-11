@@ -304,20 +304,28 @@ Services:
 
 The backend applies the Alembic baseline migration at startup.
 
-### Local development
+### Local development (without Docker)
+
+Requirements: Python 3.12+ and Node.js 20.9+ (22 recommended).
 
 ```bash
-make setup
-make test
-make lint
+make setup          # pip install -e "backend[dev]" + npm ci
+make backend        # API on http://localhost:8000 (SQLite by default)
+make frontend       # web app on http://localhost:3000, proxying /api/v1 to the API
 ```
 
-Or:
+Without a Redis server everything works except "Queue in background", which answers
+`503 QUEUE_UNAVAILABLE` immediately; use "Run analysis" instead.
+
+Quality checks:
 
 ```bash
-python -m pip install -e "backend[dev]"
-cd frontend && npm install
+make test           # backend tests + entity-resolution evals
+make lint           # ruff + TypeScript type check
 ```
+
+The web app reaches the API through a Next.js rewrite. Set `BACKEND_URL` (default
+`http://localhost:8000`) when the API runs elsewhere; in Docker it is passed as a build argument.
 
 Configuration is documented in [.env.example](.env.example).
 
@@ -648,7 +656,7 @@ Current limitations are kept explicit:
 1. **CNRC/Sidjilcom is manual-only.** A lawful documented automated interface can be added later through the adapter system.
 2. **OCR is optional.** The default Docker image does not bundle PaddlePaddle because CPU/GPU runtimes are platform-specific.
 3. **Website intelligence is intentionally shallow.** DalilDZ does not crawl entire sites.
-4. **PDF export is not bundled yet.** Printable HTML is available and can be printed to PDF by the browser.
+4. **No server-side PDF renderer is bundled.** The printable HTML report has a "Print / save as PDF" button that uses the browser's PDF output.
 5. **No multi-user authentication layer is included in v1.0.** Deploy behind appropriate access control when documents are sensitive.
 6. **Cross-script transliteration is approximate.** Ambiguous entity matches remain reviewable instead of being silently merged.
 7. **Public technical metadata is supporting evidence only.** DNS/TLS/RDAP cannot establish legal status.
